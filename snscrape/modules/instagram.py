@@ -116,7 +116,7 @@ class _InstagramCommonScraper(snscrape.base.Scraper):
 					# There are 3 image URLs for each size: 640x800, 750x937, 1080x1350
 					# These may or may not be standard sizes, and the number of items coudl be different
 					# For now, we will assume we want the "3rd item" that is "1080 width"
-					medium = Photo(node['node']['thumbnail_src'], edge_child_node['display_resources'][2])
+					medium = Photo(node['node']['thumbnail_src'], edge_child_node['display_url'])
 					yield InstagramPost(
 						url=url,
 						date=datetime.datetime.fromtimestamp(node['node']['taken_at_timestamp'], datetime.timezone.utc),
