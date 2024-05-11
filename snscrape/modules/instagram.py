@@ -108,18 +108,43 @@ class _InstagramCommonScraper(snscrape.base.Scraper):
 					VideoVariant(url = node['node']['video_url'], width = node['node']['dimensions']['width'], height = node['node']['dimensions']['height'])
 				]
 				medium = Video(thumbnailUrl = node['node']['thumbnail_src'], variants = variants, duration = int(node['node']['video_duration']) if 'video_duration' in node['node'] else None, views = node['node']['video_view_count'])
-			yield InstagramPost(
-				url = url,
-				date = datetime.datetime.fromtimestamp(node['node']['taken_at_timestamp'], datetime.timezone.utc),
-				content = node['node']['edge_media_to_caption']['edges'][0]['node']['text'] if len(node['node']['edge_media_to_caption']['edges']) else None,
-				username = username,
-				likes = node['node']['edge_media_preview_like']['count'],
-				comments = node['node']['edge_media_to_comment']['count'],
-				commentsDisabled = node['node']['comments_disabled'],
-				isVideo = node['node']['is_video'],
-				medium = medium,
-				id = node['node']['id'],
-			)
+			# If there is a  'edge_sidecar_to_children' node, we need to iterate over its items
+			# otherwise we can yield just one post
+			if 'edge_sidecar_to_children' in node['node']:
+				for edge_child in node['node']['edge_sidecar_to_children']['edges']:
+					edge_child_node = edge_child['node']
+					# There are 3 image URLs for each size: 640x800, 750x937, 1080x1350
+					# These may or may not be standard sizes, and the number of items coudl be different
+					# For now, we will assume we want the "3rd item" that is "1080 width"
+					medium = Photo(node['thumbnail_src'], edge_child_node['display_resources'][2])
+					yield InstagramPost(
+						url=url,
+						date=datetime.datetime.fromtimestamp(node['node']['taken_at_timestamp'], datetime.timezone.utc),
+						content=node['node']['edge_media_to_caption']['edges'][0]['node']['text'] if len(
+							node['node']['edge_media_to_caption']['edges']) else None,
+						username=username,
+						likes=node['node']['edge_media_preview_like']['count'],
+						comments=node['node']['edge_media_to_comment']['count'],
+						commentsDisabled=node['node']['comments_disabled'],
+						isVideo=node['node']['is_video'],
+						medium=medium,
+						id=edge_child_node['node']['id'],
+					)
+
+			else:
+				yield InstagramPost(
+					url=url,
+					date=datetime.datetime.fromtimestamp(node['node']['taken_at_timestamp'], datetime.timezone.utc),
+					content=node['node']['edge_media_to_caption']['edges'][0]['node']['text'] if len(
+						node['node']['edge_media_to_caption']['edges']) else None,
+					username=username,
+					likes=node['node']['edge_media_preview_like']['count'],
+					comments=node['node']['edge_media_to_comment']['count'],
+					commentsDisabled=node['node']['comments_disabled'],
+					isVideo=node['node']['is_video'],
+					medium=medium,
+					id=node['node']['id'],
+				)
 
 	def _initial_page(self):
 		if self._initialPage is None:
