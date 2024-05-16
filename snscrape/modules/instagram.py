@@ -114,8 +114,8 @@ class _InstagramCommonScraper(snscrape.base.Scraper):
 				for edge_child in node['node']['edge_sidecar_to_children']['edges']:
 					edge_child_node = edge_child['node']
 					# There are 3 image URLs for each size: 640x800, 750x937, 1080x1350
-					# These may or may not be standard sizes, and the number of items coudl be different
-					# For now, we will assume we want the "3rd item" that is "1080 width"
+					# Used to pick the largest, but that didn't work in all cases.
+					# Instead, go back to standard `display_url` attribute.
 					medium = Photo(node['node']['thumbnail_src'], edge_child_node['display_url'])
 					yield InstagramPost(
 						url=url,
@@ -128,7 +128,7 @@ class _InstagramCommonScraper(snscrape.base.Scraper):
 						commentsDisabled=node['node']['comments_disabled'],
 						isVideo=node['node']['is_video'],
 						medium=medium,
-						id=edge_child_node['node']['id'],
+						id=edge_child_node['id'],
 					)
 
 			else:
