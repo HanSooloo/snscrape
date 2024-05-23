@@ -16,7 +16,10 @@ import datetime
 import hashlib
 import json
 import logging
+import random
 import re
+import time
+
 import snscrape.base
 import snscrape.utils
 import typing
@@ -213,6 +216,13 @@ class _InstagramCommonScraper(snscrape.base.Scraper):
 		while True:
 			_logger.info(f'Retrieving endCursor = {endCursor!r}')
 			variables = self._variablesFormat.format(**locals())
+			
+			# Wait a randomized amount of time before requesting next page/cursor
+			# This is so that we don't get redirected to Insta login page for too much traffic
+			random_wait = random.randint(30, 60)
+			_logger.info(f'Waiting {random_wait} seconds')
+			time.sleep(random_wait)
+			
 			r = self._get(f'https://www.instagram.com/graphql/query/?query_hash={self._queryHash}&variables={variables}', headers = headers, responseOkCallback = self._check_json_callback)
 
 			if r.status_code != 200:
