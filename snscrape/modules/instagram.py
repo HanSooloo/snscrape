@@ -220,8 +220,15 @@ class _InstagramCommonScraper(snscrape.base.Scraper):
 			# Wait a randomized amount of time before requesting next page/cursor
 			# This is so that we don't get redirected to Insta login page for too much traffic
 			random_wait = random.randint(30, 60)
-			_logger.info(f'Waiting {random_wait} seconds')
+			_logger.info(f'Instagram throttling: waiting {random_wait} seconds')
 			time.sleep(random_wait)
+			
+			_logger.info(f'Changing User-Agent to a random value')
+			old_user_agent = headers['User-Agent']
+			_logger.info(f'Old User-Agent: {old_user_agent}')
+			new_user_agent = snscrape.base.random_user_agent()
+			headers.update({'User-Agent': new_user_agent})
+			_logger.info(f'New User-Agent: {new_user_agent}')
 			
 			r = self._get(f'https://www.instagram.com/graphql/query/?query_hash={self._queryHash}&variables={variables}', headers = headers, responseOkCallback = self._check_json_callback)
 
